@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🛰️ SatCap — Satellite Image Captioning</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f5f6;
+      color: #222;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 { color: #333; }
+    .upload-box {
+      background: rgb(239, 251, 251);
+      box-shadow: 30px 0px 500px #e3c043;
+      padding: 30px;
+      width: 710px;
+      height:626px;
+      border-radius: 15px;
+      display: inline-block;
+      border-radius: 20% 20% 20% 20%;
+      border: 2px solid yellow;
+    }
+    input[type="file"] { margin: 10px 0; }
+    #preview {
+      width: 700px;
+      height: 500px;
+      margin-top: 15px;
+      border-radius: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: none;
+    }
+    #caption {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #2b2b2b;
+    }
+    button {
+      background-color: #af7ed0;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 26px;
+      border-radius: 8px;
+      cursor: pointer;
+      border-radius:20px;
+    }
+    
+    
+    button:hover { background-color: #dde1e5; color: black; }
+  </style>
+</head>
+<body>
+  <h1 style="font-size: 40px; position: relative;">🛰️ SatCap — Satellite Image Captioning</h1>
+
+  <div class="upload-box">
+    <input type="file" id="imageInput" accept="image/*" />
+    <div style="height: 520px;">
+      <img id="preview" src="" />
+    </div>
+
+    <button id="generateBtn">Generate Caption</button>
+
+    
+
+  </div>
+  <div id="caption" style="font-size: 35px; margin-top: 20px; font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;"></div>
+
+
+<script>
+  let selectedFile = null;
+
+  // Show preview immediately
+  document.getElementById("imageInput").addEventListener("change", function () {
+    const file = this.files[0];
+    selectedFile = file;
+    const preview = document.getElementById("preview");
+
+    if (!file) return;
+
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = "block";
+    document.getElementById("caption").innerText = "";
+  });
+
+  // Generate caption only when button is clicked
+  document.getElementById("generateBtn").addEventListener("click", async function () {
+    const captionBox = document.getElementById("caption");
+    if (!selectedFile) {
+      alert("Please select an image first!");
+      return;
+    }
+
+    captionBox.innerText = " Generating caption...";
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/upload/", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.caption) {
+        captionBox.innerText = "";
+        typeText(captionBox, data.caption, 60);
+      } else {
+        captionBox.innerText = " Error: " + data.error;
+      }
+    } catch (err) {
+      captionBox.innerText = " Failed to connect to backend.";
+    }
+  });
+
+  function typeText(element, text, speed = 60) {
+    let index = 0;
+    function typeNext() {
+      if (index < text.length) {
+        element.innerHTML += text.charAt(index);
+        index++;
+        setTimeout(typeNext, speed);
+      }
+    }
+    typeNext();
+  }
+</script>
+</body>
+</html>
